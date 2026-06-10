@@ -1,0 +1,836 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PayMePro — OpenEpen</title>
+  <meta name="description" content="PayMePro is invoicing and payment tracking built for freelancers — plus a free rate calculator to find what you actually deserve." />
+  <link rel="stylesheet" href="css/style.css" />
+  <style>
+    /* ── Calculator dark-theme overrides ── */
+    .calc-wrap {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 2.5rem;
+      max-width: 760px;
+      margin: 0 auto;
+    }
+
+    /* tab bar */
+    .c-tab-bar {
+      display: flex;
+      background: var(--navy-light);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      margin-bottom: 1.75rem;
+    }
+    .c-tab-btn {
+      flex: 1;
+      padding: 13px 8px;
+      font-size: 13px;
+      font-weight: 500;
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      color: var(--text-muted);
+      border-right: 1px solid var(--border);
+      transition: all 0.15s;
+      line-height: 1.3;
+      font-family: inherit;
+    }
+    .c-tab-btn:last-child { border-right: none; }
+    .c-tab-btn.active { background: var(--green); color: var(--navy); font-weight: 700; }
+    .c-tab-btn:hover:not(.active) { background: var(--green-glow); color: var(--green); }
+    .c-tab-pane { display: none; }
+    .c-tab-pane.active { display: block; }
+
+    /* card inside calculator */
+    .c-card {
+      background: var(--navy-light);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 1.75rem;
+    }
+
+    /* form */
+    .c-field-group { margin-bottom: 18px; }
+    .c-field-label {
+      display: block;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-muted);
+      margin-bottom: 7px;
+    }
+    .c-card select,
+    .c-card input[type="number"] {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid rgba(148,163,184,0.2);
+      border-radius: 8px;
+      background: var(--navy);
+      color: var(--text);
+      font-size: 14px;
+      font-family: inherit;
+      transition: border 0.15s;
+      outline: none;
+    }
+    .c-card select:focus,
+    .c-card input[type="number"]:focus {
+      border-color: var(--green);
+      box-shadow: 0 0 0 3px var(--green-glow);
+    }
+    .c-card select option { background: var(--navy); }
+    .c-two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+    /* sliders */
+    .c-slider-wrap { display: flex; align-items: center; gap: 12px; margin-top: 6px; }
+    .c-slider-wrap input[type="range"] { flex: 1; accent-color: var(--green); }
+    .c-slider-label { font-size: 12px; color: var(--text-muted); white-space: nowrap; }
+    .c-slider-val { font-size: 14px; font-weight: 600; color: var(--green); min-width: 48px; text-align: right; }
+
+    /* section divider */
+    .c-section-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+      margin: 20px 0 14px;
+      padding-top: 20px;
+      border-top: 1px solid var(--border);
+    }
+
+    /* expense rows */
+    .c-expense-row { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+    .c-expense-row .c-field-label { flex: 1; margin: 0; font-weight: 400; }
+    .c-expense-row input { width: 110px !important; }
+
+    /* market strip */
+    .c-market-strip { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 20px; }
+    .c-market-card {
+      background: var(--navy);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px;
+      text-align: center;
+    }
+    .c-mk-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted); margin-bottom: 4px; }
+    .c-mk-val { font-size: 20px; font-weight: 700; color: var(--white); }
+
+    /* range bar */
+    .c-range-bar-wrap { margin: 4px 0 20px; }
+    .c-range-bar-labels { display: flex; justify-content: space-between; font-size: 12px; color: var(--text-muted); margin-bottom: 8px; }
+    .c-range-bar-bg { height: 8px; background: var(--navy); border-radius: 4px; position: relative; border: 1px solid var(--border); }
+    .c-range-bar-fill { height: 8px; background: rgba(34,197,94,0.35); border-radius: 4px; position: absolute; transition: width 0.3s; }
+    .c-range-bar-dot { width: 18px; height: 18px; background: var(--green); border: 3px solid var(--navy-light); border-radius: 50%; position: absolute; top: -6px; transform: translateX(-50%); transition: left 0.3s; box-shadow: 0 0 0 1px var(--green); }
+
+    /* result */
+    .c-result-card {
+      background: var(--green-glow);
+      border: 1px solid var(--green);
+      border-radius: 14px;
+      padding: 20px 24px;
+      margin: 20px 0 16px;
+    }
+    .c-result-label { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--green); margin-bottom: 6px; }
+    .c-result-main { font-size: 44px; font-weight: 900; color: #4ade80; letter-spacing: -1px; line-height: 1; }
+    .c-result-sub { font-size: 13px; color: var(--text-muted); margin-top: 8px; font-weight: 500; }
+
+    /* stat grid */
+    .c-stat-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin: 16px 0; }
+    .c-stat-card { background: var(--navy); border: 1px solid var(--border); border-radius: 10px; padding: 14px; }
+    .c-sc-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted); margin-bottom: 4px; }
+    .c-sc-val { font-size: 20px; font-weight: 700; color: var(--white); }
+
+    /* tip box */
+    .c-tip-box {
+      background: var(--navy);
+      border-left: 3px solid var(--green);
+      border-radius: 0 10px 10px 0;
+      padding: 12px 16px;
+      font-size: 13px;
+      color: var(--text-muted);
+      line-height: 1.6;
+      margin-top: 16px;
+    }
+
+    /* package pricing */
+    .c-pkg-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 16px 0; }
+    .c-pkg-card {
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 18px 14px;
+      background: var(--navy);
+      text-align: center;
+    }
+    .c-pkg-card.c-featured { border: 2px solid var(--green); box-shadow: 0 0 0 1px var(--green-glow); }
+    .c-pkg-badge {
+      font-size: 10px; font-weight: 700; color: var(--green);
+      background: var(--green-glow); padding: 3px 10px;
+      border-radius: 20px; display: inline-block; margin-bottom: 8px;
+      text-transform: uppercase; letter-spacing: 0.06em;
+      border: 1px solid var(--border);
+    }
+    .c-pkg-name { font-size: 14px; font-weight: 600; color: var(--white); margin-bottom: 3px; }
+    .c-pkg-sessions { font-size: 12px; color: var(--text-muted); margin-bottom: 10px; }
+    .c-pkg-price { font-size: 26px; font-weight: 800; color: var(--green); }
+    .c-pkg-per { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+    .c-pkg-savings { font-size: 11px; font-weight: 600; color: #4ade80; margin-top: 4px; }
+
+    /* share bar */
+    .c-share-bar { display: flex; gap: 10px; margin-top: 24px; flex-wrap: wrap; align-items: center; }
+    .c-share-btn {
+      display: flex; align-items: center; gap: 7px;
+      padding: 10px 18px; border-radius: 8px;
+      font-size: 13px; font-weight: 500; cursor: pointer;
+      border: 1px solid var(--border);
+      background: var(--navy); color: var(--text);
+      transition: all 0.15s; font-family: inherit;
+    }
+    .c-share-btn:hover { border-color: var(--green); color: var(--green); }
+    .c-share-btn.c-primary { background: var(--green); color: var(--navy); border-color: var(--green); font-weight: 700; }
+    .c-share-btn.c-primary:hover { background: #4ade80; }
+    .c-copy-toast { font-size: 12px; font-weight: 600; color: var(--green); display: none; align-items: center; gap: 4px; }
+
+    /* responsive */
+    @media (max-width: 600px) {
+      .c-two-col, .c-market-strip, .c-stat-grid, .c-pkg-grid { grid-template-columns: 1fr; }
+      .c-result-main { font-size: 36px; }
+      .c-tab-btn { font-size: 11px; padding: 11px 4px; }
+      .calc-wrap { padding: 1.25rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav class="navbar">
+    <a href="index.html" class="nav-logo">Open<span>Epen</span></a>
+    <ul class="nav-links">
+      <li><a href="index.html">Home</a></li>
+      <li><a href="projects.html" class="active">Projects</a></li>
+      <li><a href="contact.html">Contact</a></li>
+      <li><a href="contact.html" class="nav-cta">Get in Touch</a></li>
+    </ul>
+  </nav>
+
+  <div class="page-content">
+
+    <!-- DETAIL HERO -->
+    <div class="detail-hero">
+      <div class="detail-hero-inner">
+        <a href="projects.html" class="detail-back">Back to Projects</a>
+        <div class="detail-meta">
+          <span class="card-status status-live">Live</span>
+          <span class="card-tag">Finance</span>
+          <span class="card-tag">Freelancers</span>
+          <span class="card-tag">SaaS</span>
+        </div>
+        <h1>💰 PayMePro</h1>
+        <p class="lead">
+          Professional invoicing and payment tracking for freelancers and independent contractors. Stop chasing clients — let PayMePro do it for you. Includes a free rate calculator so you always know what to charge.
+        </p>
+        <div class="detail-actions">
+          <a href="contact.html" class="btn-primary">Request a Demo</a>
+          <a href="#calculator" class="btn-outline">Try the Calculator</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- STATS BAND -->
+    <div style="background: var(--navy-mid); padding: 3rem 2rem; border-bottom: 1px solid var(--border);">
+      <div class="stats-grid" style="max-width: 860px; margin: 0 auto;">
+        <div class="stat-card">
+          <div class="stat-value">2 min</div>
+          <div class="stat-label">Average invoice creation time</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value">40%</div>
+          <div class="stat-label">Faster average payment received</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value">100%</div>
+          <div class="stat-label">Free for solo freelancers</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value">5★</div>
+          <div class="stat-label">Average user rating</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DETAIL BODY -->
+    <div class="detail-body">
+
+      <!-- THE PROBLEM -->
+      <div class="detail-section">
+        <h2>The Problem</h2>
+        <p>
+          Freelancers lose an average of 14 hours per month chasing unpaid invoices. Between sending reminders, re-sending PDFs, answering "can you resend that?", and tracking down late payments, the administrative burden of getting paid can feel like a second job.
+        </p>
+        <p>
+          Existing tools are either too complex (designed for agencies), too expensive (subscription stacks that eat into margins), or too bare-bones (spreadsheets that don't scale). PayMePro is built for the solo freelancer who just needs it to work.
+        </p>
+      </div>
+
+      <!-- KEY FEATURES -->
+      <div class="detail-section">
+        <h2>Key Features</h2>
+        <ul class="feature-list">
+          <li>One-click professional invoice generation</li>
+          <li>Automatic payment reminders on your schedule</li>
+          <li>Client portal for viewing and paying invoices</li>
+          <li>Recurring invoice support for retainer clients</li>
+          <li>Real-time payment status tracking</li>
+          <li>Expense logging and profit/loss overview</li>
+          <li>PDF export with your own logo and branding</li>
+          <li>Late fee automation</li>
+          <li>Multi-currency support</li>
+          <li>Tax line-item support (sales tax, VAT, GST)</li>
+          <li>Stripe &amp; PayPal payment integration</li>
+          <li>Client contact book with invoice history</li>
+        </ul>
+      </div>
+
+    </div><!-- end first half of detail-body -->
+
+    <!-- ================================================
+         CALCULATOR SECTION (mid-page)
+         ================================================ -->
+    <section id="calculator" style="background: var(--navy-mid); padding: 5rem 2rem; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);">
+      <div class="section-header">
+        <span class="section-label">Free Tool</span>
+        <h2 class="section-title">Find the Rate You Actually Deserve</h2>
+        <p class="section-sub">Three calculators built for independent consultants, tutors, and service providers who are tired of guessing.</p>
+      </div>
+
+      <div class="calc-wrap">
+        <div class="c-tab-bar">
+          <button class="c-tab-btn active" onclick="showTab('quick',this)">⚡ Quick rate</button>
+          <button class="c-tab-btn" onclick="showTab('deep',this)">📊 Full cost breakdown</button>
+          <button class="c-tab-btn" onclick="showTab('goal',this)">🎯 Target annual income</button>
+        </div>
+
+        <!-- TAB 1: QUICK RATE -->
+        <div id="tab-quick" class="c-tab-pane active">
+          <div class="c-card">
+            <div class="c-two-col">
+              <div class="c-field-group">
+                <label class="c-field-label">Your specialty</label>
+                <select id="q-specialty" onchange="calcQuick()">
+                  <option value="tutoring">Tutoring / reading instruction</option>
+                  <option value="education">Education consulting</option>
+                  <option value="marketing">Marketing consulting</option>
+                  <option value="hr">HR consulting</option>
+                  <option value="business">Business / management</option>
+                  <option value="finance">Financial consulting</option>
+                  <option value="it">IT / tech consulting</option>
+                  <option value="health">Health &amp; wellness coaching</option>
+                  <option value="nonprofit">Nonprofit consulting</option>
+                  <option value="legal">Legal consulting</option>
+                  <option value="engineering">Engineering consulting</option>
+                  <option value="realestate">Real estate consulting</option>
+                  <option value="writing">Writing / content strategy</option>
+                  <option value="design">Design / UX consulting</option>
+                  <option value="executive">Executive coaching</option>
+                </select>
+              </div>
+              <div class="c-field-group">
+                <label class="c-field-label">Years of experience</label>
+                <select id="q-exp" onchange="calcQuick()">
+                  <option value="0">0–2 years (entry level)</option>
+                  <option value="1" selected>3–5 years (mid level)</option>
+                  <option value="2">6–10 years (senior)</option>
+                  <option value="3">10+ years (expert)</option>
+                </select>
+              </div>
+            </div>
+            <div class="c-two-col">
+              <div class="c-field-group">
+                <label class="c-field-label">Project complexity</label>
+                <select id="q-complexity" onchange="calcQuick()">
+                  <option value="0">Simple / routine</option>
+                  <option value="1" selected>Moderate</option>
+                  <option value="2">Complex / specialized</option>
+                  <option value="3">Highly complex / niche</option>
+                </select>
+              </div>
+              <div class="c-field-group">
+                <label class="c-field-label">Location</label>
+                <select id="q-location" onchange="calcQuick()">
+                  <option value="0.75">Rural</option>
+                  <option value="0.9">Small city</option>
+                  <option value="1" selected>Mid-size city / remote</option>
+                  <option value="1.15">Large city</option>
+                  <option value="1.35">Major metro (NYC, SF, LA)</option>
+                </select>
+              </div>
+            </div>
+            <div class="c-field-group">
+              <label class="c-field-label">Monthly business expenses — <span id="q-exp-label">$500</span></label>
+              <div class="c-slider-wrap">
+                <span class="c-slider-label">$0</span>
+                <input type="range" min="0" max="5000" step="50" value="500" id="q-expenses" oninput="document.getElementById('q-exp-label').textContent='$'+Number(this.value).toLocaleString();calcQuick()">
+                <span class="c-slider-label">$5,000</span>
+              </div>
+            </div>
+
+            <div class="c-market-strip">
+              <div class="c-market-card"><div class="c-mk-label">Market low</div><div class="c-mk-val" id="q-low">—</div></div>
+              <div class="c-market-card"><div class="c-mk-label">Market avg</div><div class="c-mk-val" id="q-avg">—</div></div>
+              <div class="c-market-card"><div class="c-mk-label">Market high</div><div class="c-mk-val" id="q-high">—</div></div>
+            </div>
+
+            <div class="c-result-card">
+              <div class="c-result-label">Your recommended rate</div>
+              <div class="c-result-main" id="q-result">—</div>
+              <div class="c-result-sub" id="q-range">—</div>
+            </div>
+
+            <div class="c-range-bar-wrap">
+              <div class="c-range-bar-labels">
+                <span id="q-bar-low">$0</span>
+                <span style="color:var(--text-muted);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em">Your position in market</span>
+                <span id="q-bar-high">$0</span>
+              </div>
+              <div class="c-range-bar-bg">
+                <div class="c-range-bar-fill" id="q-bar-fill" style="width:60%"></div>
+                <div class="c-range-bar-dot" id="q-bar-dot" style="left:60%"></div>
+              </div>
+            </div>
+
+            <div class="c-tip-box" id="q-tip"></div>
+            <div id="q-pkg"></div>
+
+            <div class="c-share-bar">
+              <button class="c-share-btn c-primary" onclick="printResults('quick')">🖨 Print / save PDF</button>
+              <button class="c-share-btn" onclick="copyResults('quick')">📋 Copy results</button>
+              <span class="c-copy-toast" id="toast-quick">✓ Copied!</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 2: FULL COST BREAKDOWN -->
+        <div id="tab-deep" class="c-tab-pane">
+          <div class="c-card">
+            <div class="c-two-col">
+              <div class="c-field-group">
+                <label class="c-field-label">Target annual income (take-home)</label>
+                <input type="number" id="d-income" value="75000" oninput="calcDeep()">
+              </div>
+              <div class="c-field-group">
+                <label class="c-field-label">Billable hours per week</label>
+                <input type="number" id="d-hours" value="20" min="1" max="60" oninput="calcDeep()">
+              </div>
+            </div>
+            <div class="c-two-col">
+              <div class="c-field-group">
+                <label class="c-field-label">Weeks worked per year</label>
+                <input type="number" id="d-weeks" value="48" oninput="calcDeep()">
+              </div>
+              <div class="c-field-group">
+                <label class="c-field-label">Self-employment tax rate %</label>
+                <input type="number" id="d-tax" value="30" oninput="calcDeep()">
+              </div>
+            </div>
+
+            <div class="c-section-title">Monthly overhead &amp; operating expenses</div>
+            <div class="c-expense-row"><label class="c-field-label">Marketing &amp; advertising</label><input type="number" id="d-marketing" value="100" oninput="calcDeep()"></div>
+            <div class="c-expense-row"><label class="c-field-label">Software &amp; subscriptions</label><input type="number" id="d-software" value="75" oninput="calcDeep()"></div>
+            <div class="c-expense-row"><label class="c-field-label">Health insurance</label><input type="number" id="d-health" value="400" oninput="calcDeep()"></div>
+            <div class="c-expense-row"><label class="c-field-label">Professional development / training</label><input type="number" id="d-training" value="50" oninput="calcDeep()"></div>
+            <div class="c-expense-row"><label class="c-field-label">Office / workspace</label><input type="number" id="d-office" value="50" oninput="calcDeep()"></div>
+            <div class="c-expense-row"><label class="c-field-label">Equipment &amp; supplies</label><input type="number" id="d-equip" value="30" oninput="calcDeep()"></div>
+            <div class="c-expense-row"><label class="c-field-label">Accounting / legal</label><input type="number" id="d-acct" value="50" oninput="calcDeep()"></div>
+            <div class="c-expense-row"><label class="c-field-label">Travel &amp; client entertainment</label><input type="number" id="d-travel" value="50" oninput="calcDeep()"></div>
+            <div class="c-expense-row"><label class="c-field-label">Retirement contributions</label><input type="number" id="d-retire" value="200" oninput="calcDeep()"></div>
+            <div class="c-expense-row"><label class="c-field-label">Other / miscellaneous</label><input type="number" id="d-other" value="50" oninput="calcDeep()"></div>
+
+            <div class="c-result-card">
+              <div class="c-result-label">Your minimum viable rate</div>
+              <div class="c-result-main" id="d-min">—</div>
+              <div class="c-result-sub" id="d-rec">—</div>
+            </div>
+
+            <div class="c-stat-grid">
+              <div class="c-stat-card"><div class="c-sc-label">Total annual overhead</div><div class="c-sc-val" id="d-overhead">—</div></div>
+              <div class="c-stat-card"><div class="c-sc-label">Annual billable hours</div><div class="c-sc-val" id="d-billable-hrs">—</div></div>
+              <div class="c-stat-card"><div class="c-sc-label">Gross revenue needed</div><div class="c-sc-val" id="d-gross">—</div></div>
+              <div class="c-stat-card"><div class="c-sc-label">Equivalent daily rate</div><div class="c-sc-val" id="d-daily">—</div></div>
+            </div>
+
+            <div id="d-pkg"></div>
+            <div class="c-tip-box">Most consultants can realistically bill 50–70% of their time. The rest goes to admin, prep, proposals, and no-shows. This calculator uses your actual billable hours — not your total hours worked.</div>
+
+            <div class="c-share-bar">
+              <button class="c-share-btn c-primary" onclick="printResults('deep')">🖨 Print / save PDF</button>
+              <button class="c-share-btn" onclick="copyResults('deep')">📋 Copy results</button>
+              <span class="c-copy-toast" id="toast-deep">✓ Copied!</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 3: TARGET ANNUAL INCOME -->
+        <div id="tab-goal" class="c-tab-pane">
+          <div class="c-card">
+            <div class="c-two-col">
+              <div class="c-field-group">
+                <label class="c-field-label">Target annual income</label>
+                <input type="number" id="g-income" value="60000" oninput="calcGoal()">
+              </div>
+              <div class="c-field-group">
+                <label class="c-field-label">Your hourly rate ($)</label>
+                <input type="number" id="g-rate" value="75" oninput="calcGoal()">
+              </div>
+            </div>
+            <div class="c-two-col">
+              <div class="c-field-group">
+                <label class="c-field-label">Session length (hours)</label>
+                <input type="number" id="g-session" value="1" min="0.25" step="0.25" oninput="calcGoal()">
+              </div>
+              <div class="c-field-group">
+                <label class="c-field-label">Weeks worked per year</label>
+                <input type="number" id="g-weeks" value="48" oninput="calcGoal()">
+              </div>
+            </div>
+            <div class="c-field-group">
+              <label class="c-field-label">Monthly expenses — <span id="g-exp-label">$500</span></label>
+              <div class="c-slider-wrap">
+                <span class="c-slider-label">$0</span>
+                <input type="range" min="0" max="5000" step="50" value="500" id="g-expenses" oninput="document.getElementById('g-exp-label').textContent='$'+Number(this.value).toLocaleString();calcGoal()">
+                <span class="c-slider-label">$5,000</span>
+              </div>
+            </div>
+            <div class="c-field-group">
+              <label class="c-field-label">Tax rate — <span id="g-tax-label">30%</span></label>
+              <div class="c-slider-wrap">
+                <span class="c-slider-label">10%</span>
+                <input type="range" min="10" max="45" step="1" value="30" id="g-tax" oninput="document.getElementById('g-tax-label').textContent=this.value+'%';calcGoal()">
+                <span class="c-slider-label">45%</span>
+              </div>
+            </div>
+
+            <div class="c-section-title">To hit your goal you need:</div>
+            <div class="c-stat-grid">
+              <div class="c-stat-card"><div class="c-sc-label">Sessions per week</div><div class="c-sc-val" id="g-sessions-wk">—</div></div>
+              <div class="c-stat-card"><div class="c-sc-label">Hours billed per week</div><div class="c-sc-val" id="g-hrs-wk">—</div></div>
+              <div class="c-stat-card"><div class="c-sc-label">Total sessions per year</div><div class="c-sc-val" id="g-sessions-yr">—</div></div>
+              <div class="c-stat-card"><div class="c-sc-label">Monthly billing target</div><div class="c-sc-val" id="g-monthly">—</div></div>
+            </div>
+
+            <div class="c-result-card">
+              <div class="c-result-label">Gross revenue needed (after tax + expenses)</div>
+              <div class="c-result-main" id="g-gross">—</div>
+              <div class="c-result-sub" id="g-sub">—</div>
+            </div>
+
+            <div id="g-pkg"></div>
+            <div class="c-tip-box" id="g-tip">Adjust your rate or session length to see how your weekly workload changes.</div>
+
+            <div class="c-share-bar">
+              <button class="c-share-btn c-primary" onclick="printResults('goal')">🖨 Print / save PDF</button>
+              <button class="c-share-btn" onclick="copyResults('goal')">📋 Copy results</button>
+              <span class="c-copy-toast" id="toast-goal">✓ Copied!</span>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- end calc-wrap -->
+      <p style="text-align:center; font-size:0.78rem; color:var(--text-muted); margin-top:1.25rem;">Rate benchmarks based on 2025–2026 market data. Not financial or legal advice.</p>
+    </section>
+
+    <!-- SECOND HALF OF DETAIL BODY -->
+    <div class="detail-body">
+
+      <!-- HOW IT WORKS -->
+      <div class="detail-section">
+        <h2>How It Works</h2>
+        <p>
+          <strong style="color: var(--white);">1. Create a client.</strong> Add your client's name, email, and billing address once. PayMePro remembers everything for next time.
+        </p>
+        <p>
+          <strong style="color: var(--white);">2. Build the invoice.</strong> Add line items, set your payment terms, include tax lines if needed, and preview the final PDF — all in under two minutes.
+        </p>
+        <p>
+          <strong style="color: var(--white);">3. Send &amp; track.</strong> Send directly from PayMePro. Your client gets a clean email with a link to view and pay online. You see exactly when they open it and when they pay.
+        </p>
+        <p>
+          <strong style="color: var(--white);">4. Get paid.</strong> Payments land in your connected Stripe or PayPal account. Overdue invoices trigger automated reminders so you never have to ask twice.
+        </p>
+      </div>
+
+      <!-- TECHNOLOGY -->
+      <div class="detail-section">
+        <h2>Technology</h2>
+        <div class="tech-grid">
+          <span class="tech-chip">React</span>
+          <span class="tech-chip">Node.js</span>
+          <span class="tech-chip">PostgreSQL</span>
+          <span class="tech-chip">Stripe API</span>
+          <span class="tech-chip">PayPal SDK</span>
+          <span class="tech-chip">Tailwind CSS</span>
+          <span class="tech-chip">AWS S3</span>
+          <span class="tech-chip">SendGrid</span>
+          <span class="tech-chip">PDF-lib</span>
+        </div>
+      </div>
+
+      <!-- PRICING -->
+      <div class="detail-section">
+        <h2>Pricing</h2>
+        <div class="stats-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));">
+          <div class="stat-card" style="border-color: var(--border); text-align: left; padding: 1.75rem;">
+            <div style="font-size: 0.75rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 0.5rem;">Free</div>
+            <div style="font-size: 2rem; font-weight: 900; color: var(--white);">$0<span style="font-size: 1rem; color: var(--text-muted);">/mo</span></div>
+            <div style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.5rem; line-height: 1.5;">Up to 3 active clients, 10 invoices/month, PDF export</div>
+          </div>
+          <div class="stat-card" style="border-color: var(--green); text-align: left; padding: 1.75rem; box-shadow: 0 0 0 1px var(--green-glow);">
+            <div style="font-size: 0.75rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--green); margin-bottom: 0.5rem;">Pro</div>
+            <div style="font-size: 2rem; font-weight: 900; color: var(--white);">$12<span style="font-size: 1rem; color: var(--text-muted);">/mo</span></div>
+            <div style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.5rem; line-height: 1.5;">Unlimited clients &amp; invoices, auto-reminders, branding, recurring invoices</div>
+          </div>
+          <div class="stat-card" style="border-color: var(--border); text-align: left; padding: 1.75rem;">
+            <div style="font-size: 0.75rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 0.5rem;">Business</div>
+            <div style="font-size: 2rem; font-weight: 900; color: var(--white);">$29<span style="font-size: 1rem; color: var(--text-muted);">/mo</span></div>
+            <div style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.5rem; line-height: 1.5;">Everything in Pro + team seats, expense tracking, P&amp;L reports, priority support</div>
+          </div>
+        </div>
+      </div>
+
+      <div style="text-align: center; padding: 2rem 0;">
+        <a href="contact.html" class="btn-primary">Request a Demo</a>
+        <a href="projects.html" class="btn-outline">Back to All Projects</a>
+      </div>
+
+    </div><!-- end detail-body -->
+
+  </div><!-- end page-content -->
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <a href="index.html" class="nav-logo">Open<span>Epen</span></a>
+        <p>Independent software studio building products that make life a little easier.</p>
+      </div>
+      <div class="footer-col">
+        <h4>Navigation</h4>
+        <ul>
+          <li><a href="index.html">Home</a></li>
+          <li><a href="projects.html">Projects</a></li>
+          <li><a href="contact.html">Contact</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Projects</h4>
+        <ul>
+          <li><a href="paymepro.html">PayMePro</a></li>
+          <li><a href="projects.html">NestNumber</a></li>
+          <li><a href="projects.html">SmallBizMD</a></li>
+          <li><a href="projects.html">ScannerDan</a></li>
+          <li><a href="projects.html">TubieTribe</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Contact</h4>
+        <ul>
+          <li><a href="mailto:openepen1@gmail.com">openepen1@gmail.com</a></li>
+          <li><a href="contact.html">Contact Form</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>&copy; 2026 OpenEpen. All rights reserved.</span>
+      <span>Built with care.</span>
+    </div>
+  </footer>
+
+  <script>
+  const rates = {
+    tutoring:    { base: [25,55,85]    },
+    education:   { base: [85,140,230]  },
+    marketing:   { base: [75,150,300]  },
+    hr:          { base: [50,100,175]  },
+    business:    { base: [100,175,350] },
+    finance:     { base: [100,200,400] },
+    it:          { base: [85,175,300]  },
+    health:      { base: [50,90,175]   },
+    nonprofit:   { base: [50,100,175]  },
+    legal:       { base: [150,300,600] },
+    engineering: { base: [75,125,225]  },
+    realestate:  { base: [75,125,200]  },
+    writing:     { base: [50,100,200]  },
+    design:      { base: [65,125,225]  },
+    executive:   { base: [150,250,500] },
+  };
+  const expMult  = [1, 1.25, 1.6, 2.1];
+  const compMult = [1, 1.15, 1.35, 1.6];
+  const tips = {
+    tutoring:  'Tutors typically earn $40–$100/hr independently — far above platform rates. Specialized reading and literacy work commands the higher end.',
+    education: 'Independent education consultants average $140–$230/hr (IECA 2026). Employee salary data on Glassdoor reflects W2 workers — don\'t use it as your benchmark.',
+    marketing: 'Marketing consulting spans a wide range. Paid media and performance specialists command $200–$500/hr in competitive markets.',
+    finance:   'Financial consultants with CPA or CFP credentials command premium rates. Use the 2–3x rule: charge 2–3x your equivalent employee hourly rate.',
+    executive: 'Executive coaches often shift to retainer pricing — $3k–$8k/month — once they have a strong track record. Hourly is just the starting point.',
+    default:   'The 2–3x rule: your rate should be 2–3× the hourly equivalent of a salaried employee doing the same work, to cover taxes, benefits, unpaid time, and no-shows.',
+  };
+
+  const fmt = n => '$' + Math.round(n).toLocaleString();
+
+  function pkgHTML(rate, sessionHrs) {
+    sessionHrs = sessionHrs || 1;
+    const s5   = Math.round(rate * sessionHrs * 5);
+    const s10  = Math.round(rate * sessionHrs * 10 * 0.9);
+    const s20  = Math.round(rate * sessionHrs * 20 * 0.8);
+    const sv10 = Math.round(rate * sessionHrs * 10 * 0.1);
+    const sv20 = Math.round(rate * sessionHrs * 20 * 0.2);
+    return `
+    <div class="c-section-title">Package pricing — sell sessions upfront</div>
+    <div class="c-pkg-grid">
+      <div class="c-pkg-card">
+        <div class="c-pkg-name">Starter</div>
+        <div class="c-pkg-sessions">5 sessions</div>
+        <div class="c-pkg-price">${fmt(s5)}</div>
+        <div class="c-pkg-per">full price</div>
+        <div class="c-pkg-savings" style="color:var(--text-muted)">no discount</div>
+      </div>
+      <div class="c-pkg-card c-featured">
+        <div class="c-pkg-badge">Most popular</div>
+        <div class="c-pkg-name">Growth</div>
+        <div class="c-pkg-sessions">10 sessions</div>
+        <div class="c-pkg-price">${fmt(s10)}</div>
+        <div class="c-pkg-per">${fmt(Math.round(s10/10))}/session</div>
+        <div class="c-pkg-savings">Save ${fmt(sv10)}</div>
+      </div>
+      <div class="c-pkg-card">
+        <div class="c-pkg-name">Intensive</div>
+        <div class="c-pkg-sessions">20 sessions</div>
+        <div class="c-pkg-price">${fmt(s20)}</div>
+        <div class="c-pkg-per">${fmt(Math.round(s20/20))}/session</div>
+        <div class="c-pkg-savings">Save ${fmt(sv20)}</div>
+      </div>
+    </div>`;
+  }
+
+  function calcQuick() {
+    const spec = document.getElementById('q-specialty').value;
+    const exp  = parseInt(document.getElementById('q-exp').value);
+    const comp = parseInt(document.getElementById('q-complexity').value);
+    const loc  = parseFloat(document.getElementById('q-location').value);
+    const mExp = parseInt(document.getElementById('q-expenses').value);
+    const r    = rates[spec];
+    const low  = Math.round(r.base[0] * loc);
+    const avg  = Math.round(r.base[1] * expMult[exp] * compMult[comp] * loc);
+    const high = Math.round(r.base[2] * expMult[Math.min(exp+1,3)] * compMult[Math.min(comp+1,3)] * loc);
+    const rec  = Math.min(avg + Math.round(mExp/160), high);
+    document.getElementById('q-low').textContent   = fmt(low);
+    document.getElementById('q-avg').textContent   = fmt(Math.round(r.base[1]*loc));
+    document.getElementById('q-high').textContent  = fmt(high);
+    document.getElementById('q-result').textContent = fmt(rec) + '/hr';
+    document.getElementById('q-range').textContent  = 'Market range for your inputs: ' + fmt(low) + ' – ' + fmt(high);
+    document.getElementById('q-bar-low').textContent  = fmt(low);
+    document.getElementById('q-bar-high').textContent = fmt(high);
+    const pct = Math.min(Math.max(((rec-low)/(high-low))*100, 5), 95);
+    document.getElementById('q-bar-fill').style.width = pct+'%';
+    document.getElementById('q-bar-dot').style.left   = pct+'%';
+    document.getElementById('q-tip').textContent = tips[spec] || tips.default;
+    document.getElementById('q-pkg').innerHTML = pkgHTML(rec, 1);
+  }
+
+  function calcDeep() {
+    const income   = parseFloat(document.getElementById('d-income').value)||0;
+    const hrs      = parseFloat(document.getElementById('d-hours').value)||20;
+    const weeks    = parseFloat(document.getElementById('d-weeks').value)||48;
+    const taxRate  = parseFloat(document.getElementById('d-tax').value)||30;
+    const exp = ['d-marketing','d-software','d-health','d-training','d-office','d-equip','d-acct','d-travel','d-retire','d-other']
+      .reduce((s,id)=>s+(parseFloat(document.getElementById(id).value)||0),0);
+    const annualExp   = exp * 12;
+    const billableHrs = hrs * weeks;
+    const grossNeeded = (income/(1-taxRate/100)) + annualExp;
+    const minRate     = grossNeeded / billableHrs;
+    const recRate     = minRate * 1.2;
+    document.getElementById('d-min').textContent          = fmt(minRate)+'/hr';
+    document.getElementById('d-rec').textContent          = 'Recommended rate (+20% buffer): ' + fmt(recRate)+'/hr';
+    document.getElementById('d-overhead').textContent     = fmt(annualExp);
+    document.getElementById('d-billable-hrs').textContent = Math.round(billableHrs).toLocaleString()+' hrs';
+    document.getElementById('d-gross').textContent        = fmt(grossNeeded);
+    document.getElementById('d-daily').textContent        = fmt(recRate*8)+'/day';
+    document.getElementById('d-pkg').innerHTML = pkgHTML(recRate, 1);
+  }
+
+  function calcGoal() {
+    const income   = parseFloat(document.getElementById('g-income').value)||0;
+    const rate     = parseFloat(document.getElementById('g-rate').value)||0;
+    const session  = parseFloat(document.getElementById('g-session').value)||1;
+    const weeks    = parseFloat(document.getElementById('g-weeks').value)||48;
+    const expenses = parseFloat(document.getElementById('g-expenses').value)||0;
+    const taxRate  = parseFloat(document.getElementById('g-tax').value)||30;
+    const annualExp   = expenses * 12;
+    const grossNeeded = (income/(1-taxRate/100)) + annualExp;
+    const totalHrs    = rate>0 ? grossNeeded/rate : 0;
+    const totalSess   = session>0 ? totalHrs/session : 0;
+    const sessPerWk   = weeks>0 ? totalSess/weeks : 0;
+    const hrsPerWk    = weeks>0 ? totalHrs/weeks : 0;
+    document.getElementById('g-sessions-wk').textContent = sessPerWk.toFixed(1);
+    document.getElementById('g-hrs-wk').textContent      = hrsPerWk.toFixed(1)+' hrs';
+    document.getElementById('g-sessions-yr').textContent = Math.round(totalSess).toLocaleString();
+    document.getElementById('g-monthly').textContent     = fmt(grossNeeded/12);
+    document.getElementById('g-gross').textContent       = fmt(grossNeeded);
+    document.getElementById('g-sub').textContent         = fmt(rate)+'/hr × '+hrsPerWk.toFixed(1)+' hrs/week × '+weeks+' weeks';
+    document.getElementById('g-pkg').innerHTML = pkgHTML(rate, session);
+    document.getElementById('g-tip').textContent = hrsPerWk<=25
+      ? 'Looking good — '+hrsPerWk.toFixed(1)+' billable hrs/week is very manageable and leaves room for admin, prep, and life.'
+      : 'At '+hrsPerWk.toFixed(1)+' billable hrs/week this is a heavy schedule. Try increasing your rate to see how it shifts.';
+  }
+
+  function showTab(name, btn) {
+    document.querySelectorAll('.c-tab-pane').forEach(p=>p.classList.remove('active'));
+    document.querySelectorAll('.c-tab-btn').forEach(b=>b.classList.remove('active'));
+    document.getElementById('tab-'+name).classList.add('active');
+    btn.classList.add('active');
+  }
+
+  function getResultText(tab) {
+    if(tab==='quick') return [
+      'PayMePro — Quick Rate Results',
+      'Recommended rate: '+document.getElementById('q-result').textContent,
+      document.getElementById('q-range').textContent,
+      'Market low: '+document.getElementById('q-low').textContent+' | Avg: '+document.getElementById('q-avg').textContent+' | High: '+document.getElementById('q-high').textContent,
+      '','Generated at openepen.com/paymepro'
+    ].join('\n');
+    if(tab==='deep') return [
+      'PayMePro — Full Cost Breakdown Results',
+      'Minimum rate: '+document.getElementById('d-min').textContent,
+      document.getElementById('d-rec').textContent,
+      'Annual overhead: '+document.getElementById('d-overhead').textContent,
+      'Gross revenue needed: '+document.getElementById('d-gross').textContent,
+      'Equivalent daily rate: '+document.getElementById('d-daily').textContent,
+      '','Generated at openepen.com/paymepro'
+    ].join('\n');
+    return [
+      'PayMePro — Target Annual Income Results',
+      'Gross revenue needed: '+document.getElementById('g-gross').textContent,
+      'Sessions per week: '+document.getElementById('g-sessions-wk').textContent,
+      'Hours billed per week: '+document.getElementById('g-hrs-wk').textContent,
+      'Monthly billing target: '+document.getElementById('g-monthly').textContent,
+      '','Generated at openepen.com/paymepro'
+    ].join('\n');
+  }
+
+  function copyResults(tab) {
+    navigator.clipboard.writeText(getResultText(tab)).then(()=>{
+      const t = document.getElementById('toast-'+tab);
+      t.style.display='flex';
+      setTimeout(()=>t.style.display='none', 2500);
+    });
+  }
+
+  function printResults(tab) {
+    const w = window.open('','_blank');
+    w.document.write('<pre style="font-family:sans-serif;font-size:15px;padding:2rem;line-height:2">'+getResultText(tab)+'</pre>');
+    w.document.close(); w.print();
+  }
+
+  calcQuick(); calcDeep(); calcGoal();
+  </script>
+</body>
+</html>

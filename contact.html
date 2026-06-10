@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Contact — OpenEpen</title>
+  <meta name="description" content="Get in touch with OpenEpen. We'd love to hear about your project, question, or idea." />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav class="navbar">
+    <a href="index.html" class="nav-logo">Open<span>Epen</span></a>
+    <ul class="nav-links">
+      <li><a href="index.html">Home</a></li>
+      <li><a href="projects.html">Projects</a></li>
+      <li><a href="contact.html" class="active">Contact</a></li>
+      <li><a href="contact.html" class="nav-cta">Get in Touch</a></li>
+    </ul>
+  </nav>
+
+  <div class="page-content">
+
+    <!-- PAGE HERO -->
+    <div class="page-hero">
+      <span class="section-label">Say Hello</span>
+      <h1>Get in Touch</h1>
+      <p>Questions, ideas, demos, or just a friendly hello — we're always happy to hear from you.</p>
+    </div>
+
+    <!-- CONTACT SECTION -->
+    <div class="contact-section">
+      <div class="contact-inner">
+
+        <!-- LEFT: INFO -->
+        <div class="contact-info">
+          <h2>We'd love to hear from you.</h2>
+          <p>
+            Whether you're interested in one of our products, want to request a demo, have a partnership idea, or just want to say hi — fill out the form and we'll get back to you within one business day.
+          </p>
+
+          <div class="contact-item">
+            <span class="contact-item-icon">✉️</span>
+            <div>
+              <div style="font-weight: 600; color: var(--text); font-size: 0.93rem;">Email</div>
+              <a href="mailto:openepen1@gmail.com">openepen1@gmail.com</a>
+            </div>
+          </div>
+
+          <div class="contact-item">
+            <span class="contact-item-icon">⏱️</span>
+            <div>
+              <div style="font-weight: 600; color: var(--text); font-size: 0.93rem;">Response Time</div>
+              <span>Within 1 business day</span>
+            </div>
+          </div>
+
+          <div class="contact-item">
+            <span class="contact-item-icon">🌎</span>
+            <div>
+              <div style="font-weight: 600; color: var(--text); font-size: 0.93rem;">Location</div>
+              <span>Remote — serving customers worldwide</span>
+            </div>
+          </div>
+
+          <div style="margin-top: 2.5rem; padding: 1.5rem; background: var(--green-glow); border: 1px solid var(--border); border-radius: 12px;">
+            <div style="font-weight: 700; color: var(--green); font-size: 0.9rem; margin-bottom: 0.4rem;">Interested in PayMePro?</div>
+            <p style="color: var(--text-muted); font-size: 0.88rem; margin: 0;">Select "Demo Request" in the form and mention PayMePro — we'll set up a live walkthrough at a time that works for you.</p>
+          </div>
+        </div>
+
+        <!-- RIGHT: FORM -->
+        <div class="contact-form">
+          <form
+            action="https://formsubmit.co/openepen1@gmail.com"
+            method="POST"
+          >
+            <!-- FormSubmit configuration -->
+            <input type="hidden" name="_subject" value="New message from OpenEpen.com" />
+            <input type="hidden" name="_captcha" value="false" />
+            <input type="hidden" name="_next" value="https://openepen.com/thanks.html" />
+            <input type="text" name="_honey" style="display:none" />
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="first_name">First Name</label>
+                <input type="text" id="first_name" name="first_name" placeholder="Jane" required />
+              </div>
+              <div class="form-group">
+                <label for="last_name">Last Name</label>
+                <input type="text" id="last_name" name="last_name" placeholder="Doe" required />
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="email">Email Address</label>
+              <input type="email" id="email" name="email" placeholder="jane@example.com" required />
+            </div>
+
+            <div class="form-group">
+              <label for="reason">Reason for Contact</label>
+              <select id="reason" name="reason" required>
+                <option value="" disabled selected>Select a reason…</option>
+                <option value="Demo Request">Demo Request</option>
+                <option value="Product Question">Product Question</option>
+                <option value="Partnership / Collaboration">Partnership / Collaboration</option>
+                <option value="General Inquiry">General Inquiry</option>
+                <option value="Press">Press</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="project">Project of Interest (optional)</label>
+              <select id="project" name="project">
+                <option value="" selected>All / Not sure yet</option>
+                <option value="PayMePro">PayMePro</option>
+                <option value="NestNumber">NestNumber</option>
+                <option value="SmallBizMD">SmallBizMD</option>
+                <option value="ScannerDan">ScannerDan</option>
+                <option value="TubieTribe">TubieTribe</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="message">Message</label>
+              <textarea id="message" name="message" placeholder="Tell us what's on your mind…" required></textarea>
+            </div>
+
+            <button type="submit" class="btn-primary form-submit">Send Message</button>
+          </form>
+        </div>
+
+      </div>
+    </div>
+
+  </div><!-- end page-content -->
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <a href="index.html" class="nav-logo">Open<span>Epen</span></a>
+        <p>Independent software studio building products that make life a little easier.</p>
+      </div>
+      <div class="footer-col">
+        <h4>Navigation</h4>
+        <ul>
+          <li><a href="index.html">Home</a></li>
+          <li><a href="projects.html">Projects</a></li>
+          <li><a href="contact.html">Contact</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Projects</h4>
+        <ul>
+          <li><a href="paymepro.html">PayMePro</a></li>
+          <li><a href="projects.html">NestNumber</a></li>
+          <li><a href="projects.html">SmallBizMD</a></li>
+          <li><a href="projects.html">ScannerDan</a></li>
+          <li><a href="projects.html">TubieTribe</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Contact</h4>
+        <ul>
+          <li><a href="mailto:openepen1@gmail.com">openepen1@gmail.com</a></li>
+          <li><a href="contact.html">Contact Form</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>&copy; 2026 OpenEpen. All rights reserved.</span>
+      <span>Built with care.</span>
+    </div>
+  </footer>
+
+</body>
+</html>
