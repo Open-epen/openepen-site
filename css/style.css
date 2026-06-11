@@ -453,6 +453,20 @@ section {
   transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s;
   display: flex;
   flex-direction: column;
+  position: relative;
+  cursor: pointer;
+}
+
+.card-link-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  border-radius: 16px;
+}
+
+.project-card-full .card-footer {
+  position: relative;
+  z-index: 2;
 }
 
 .project-card-full:hover {

@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NestNumber — OpenEpen</title>
+  <meta name="description" content="Know your number before you shop. NestNumber shows home buyers what they can afford vs. what they can pre-qualify for — side by side." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+  <style>
+    /* ── NestNumber dark-theme calculator styles ──
+       All scoped under .nn-wrap to avoid conflicts with site CSS */
+
+    .nn-wrap label {
+      font-size: 0.82rem;
+      font-weight: 500;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+    .nn-wrap input[type="number"],
+    .nn-wrap input[type="text"] {
+      width: 100%;
+      padding: 0.55rem 0.85rem;
+      border: 1px solid rgba(148,163,184,0.2);
+      border-radius: 6px;
+      background: var(--navy);
+      color: var(--text);
+      font-size: 0.88rem;
+      font-family: inherit;
+      transition: border-color 0.15s, box-shadow 0.15s;
+      outline: none;
+      appearance: none;
+      -webkit-appearance: none;
+    }
+    .nn-wrap input[type="number"]:focus,
+    .nn-wrap input[type="text"]:focus {
+      border-color: var(--green);
+      box-shadow: 0 0 0 3px var(--green-glow);
+    }
+    .nn-wrap select { padding: 0.55rem 0.85rem; font-size: 0.88rem; }
+    .nn-wrap .input-wrap { position: relative; }
+    .nn-wrap .input-wrap .prefix,
+    .nn-wrap .input-wrap .suffix {
+      position: absolute; top: 50%; transform: translateY(-50%);
+      font-size: 0.85rem; color: var(--text-muted); pointer-events: none;
+    }
+    .nn-wrap .input-wrap .prefix { left: 0.75rem; }
+    .nn-wrap .input-wrap .suffix { right: 0.75rem; }
+    .nn-wrap .has-prefix input { padding-left: 1.75rem; }
+    .nn-wrap .has-suffix input { padding-right: 2rem; }
+
+    .nn-wrap { max-width: 1100px; margin: 0 auto; padding: 0 1.25rem 3rem; }
+
+    .nn-disclaimer {
+      background: rgba(245,158,11,0.08);
+      border-left: 4px solid #f59e0b;
+      padding: 0.85rem 1.25rem;
+      margin-bottom: 1.5rem;
+      border-radius: 0 10px 10px 0;
+      font-size: 0.82rem; color: #fcd34d; line-height: 1.5;
+    }
+    .nn-disclaimer strong { color: #fbbf24; }
+
+    /* LOAN TYPE BAR */
+    .nn-loan-bar {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1rem 1.5rem 1.25rem;
+      margin-bottom: 1rem;
+    }
+    .nn-loan-bar > h3 {
+      font-size: 0.7rem; text-transform: uppercase;
+      letter-spacing: 0.1em; color: var(--text-muted); margin-bottom: 0.75rem;
+    }
+    .nn-pills { display: flex; gap: 0.6rem; flex-wrap: wrap; }
+    .nn-pill {
+      border: 2px solid rgba(148,163,184,0.2); border-radius: 99px;
+      padding: 0.4rem 1.1rem; font-size: 0.82rem; font-weight: 600;
+      font-family: inherit; cursor: pointer; background: var(--navy);
+      color: var(--text-muted); transition: all 0.15s;
+    }
+    .nn-pill:hover { border-color: var(--green); color: var(--green); }
+    .nn-pill.active-conv { border-color: var(--green); color: var(--green); background: var(--green-glow); }
+    .nn-pill.active-fha  { border-color: #a78bfa; color: #a78bfa; background: rgba(167,139,250,0.1); }
+    .nn-info { margin-top: 0.85rem; padding: 0.7rem 1rem; border-radius: 8px; font-size: 0.8rem; line-height: 1.5; display: none; }
+    .nn-info.show { display: block; }
+    .nn-info.conv { background: var(--green-glow); color: #86efac; border: 1px solid rgba(34,197,94,0.25); }
+    .nn-info.fha  { background: rgba(167,139,250,0.1); color: #c4b5fd; border: 1px solid rgba(167,139,250,0.25); }
+
+    /* SETTINGS BAR */
+    .nn-settings {
+      background: var(--card-bg); border: 1px solid var(--border);
+      border-radius: 12px; padding: 1rem 1.5rem;
+      margin-bottom: 1.5rem; display: flex; flex-wrap: wrap;
+      gap: 1.5rem; align-items: flex-end;
+    }
+    .nn-settings > h3 {
+      width: 100%; font-size: 0.7rem; text-transform: uppercase;
+      letter-spacing: 0.1em; color: var(--text-muted); margin-bottom: -0.5rem;
+    }
+    .nn-f { display: flex; flex-direction: column; gap: 0.3rem; }
+    .nn-settings .nn-f { flex: 1; min-width: 130px; }
+    .nn-state-row { width: 100%; display: flex; align-items: flex-end; gap: 1rem; flex-wrap: wrap; }
+    .nn-state-row .nn-f { flex: 2; min-width: 180px; }
+    .nn-state-row .nn-fsm { flex: 1; min-width: 110px; display: flex; flex-direction: column; gap: 0.3rem; }
+
+    /* PRINT PANEL */
+    .nn-print-panel {
+      background: var(--card-bg); border: 1px solid var(--border);
+      border-radius: 12px; padding: 1.25rem 1.5rem; margin-bottom: 1.5rem;
+    }
+    .nn-print-panel h3 { font-size: 1rem; font-weight: 700; color: var(--white); margin-bottom: 0.75rem; }
+    .nn-print-row { display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: flex-end; }
+    .nn-pf { display: flex; flex-direction: column; gap: 0.3rem; }
+    .nn-pf input { min-width: 200px; }
+    .nn-print-note { font-size: 0.75rem; color: var(--text-muted); margin-top: 0.6rem; line-height: 1.5; }
+
+    /* CALC GRID */
+    .nn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; margin-bottom: 1.5rem; }
+
+    /* CARD */
+    .nn-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+    .nn-chdr { padding: 1rem 1.5rem 0.85rem; border-bottom: 2px solid var(--border); }
+    .nn-chdr.afford { border-bottom-color: var(--green); background: var(--green-glow); }
+    .nn-chdr.prequal { border-bottom-color: #f59e0b; background: rgba(245,158,11,0.08); }
+    .nn-chdr h2 { font-size: 1.15rem; font-weight: 800; color: var(--white); margin-bottom: 0.2rem; font-family: 'DM Serif Display', Georgia, serif; }
+    .nn-chdr p { font-size: 0.78rem; color: var(--text-muted); line-height: 1.4; }
+    .nn-cbody { padding: 1.25rem 1.5rem; }
+
+    /* Section label inside card */
+    .nn-sl {
+      display: block; font-size: 0.68rem; text-transform: uppercase;
+      letter-spacing: 0.1em; color: var(--text-muted); font-weight: 700;
+      margin: 1.1rem 0 0.6rem; padding-bottom: 0.4rem;
+      border-bottom: 1px solid rgba(148,163,184,0.12);
+    }
+    .nn-sl:first-of-type { margin-top: 0; }
+
+    .nn-cbody .nn-f { margin-bottom: 0.75rem; }
+    .nn-cbody .nn-f:last-child { margin-bottom: 0; }
+
+    /* Result rows */
+    .nn-row {
+      display: flex; justify-content: space-between; align-items: baseline;
+      padding: 0.55rem 0; border-bottom: 1px dashed rgba(148,163,184,0.12); gap: 0.5rem;
+    }
+    .nn-row:last-child { border-bottom: none; }
+    .nn-rl { font-size: 0.82rem; color: var(--text-muted); flex: 1; line-height: 1.3; }
+    .nn-rv {
+      font-family: 'DM Mono', 'Courier New', monospace;
+      font-size: 0.88rem; font-weight: 500;
+      color: var(--text); text-align: right; white-space: nowrap;
+    }
+    .nn-rv.g { color: #4ade80; font-size: 1.05rem; font-weight: 700; }
+    .nn-rv.a { color: #fbbf24; font-size: 1.05rem; font-weight: 700; }
+
+    /* FHA rows */
+    .nn-fha { display: none; }
+
+    /* Answer box */
+    .nn-ans { border-radius: 10px; padding: 1rem 1.25rem; margin-top: 1rem; text-align: center; }
+    .nn-ans.sage { background: var(--green-glow); border: 2px solid var(--green); }
+    .nn-ans.amber { background: rgba(245,158,11,0.1); border: 2px solid #f59e0b; }
+    .nn-ans .al { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-muted); margin-bottom: 0.35rem; }
+    .nn-ans .an { font-size: 2rem; font-weight: 900; line-height: 1; letter-spacing: -0.02em; font-family: 'DM Serif Display', Georgia, serif; }
+    .nn-ans.sage .an { color: #4ade80; }
+    .nn-ans.amber .an { color: #fbbf24; }
+    .nn-ans .as { font-size: 0.75rem; color: var(--text-muted); margin-top: 0.3rem; }
+
+    /* Comparison card */
+    .nn-comp { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; margin-bottom: 1.5rem; }
+    .nn-comp .nn-chdr { background: var(--navy-mid); border-bottom: 1px solid var(--border); }
+    .nn-comp-body { padding: 1.5rem; }
+    .nn-cgrid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem; }
+    .nn-ccol h4 {
+      font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.09em;
+      color: var(--text-muted); margin-bottom: 0.75rem; padding-bottom: 0.4rem;
+      border-bottom: 2px solid rgba(148,163,184,0.2);
+    }
+    .nn-ccol.sage h4 { border-bottom-color: var(--green); color: var(--green); }
+    .nn-ccol.amber h4 { border-bottom-color: #f59e0b; color: #f59e0b; }
+
+    /* Gap bar */
+    .nn-gap { background: var(--navy); border-radius: 10px; padding: 1rem 1.25rem; border: 1px solid rgba(148,163,184,0.12); }
+    .nn-gap-labels { display: flex; justify-content: space-between; font-size: 0.78rem; color: var(--text-muted); margin-bottom: 0.5rem; }
+    .nn-track { height: 10px; background: rgba(148,163,184,0.1); border-radius: 99px; overflow: hidden; position: relative; }
+    .nn-fill-g { height: 100%; background: var(--green); border-radius: 99px; transition: width 0.4s ease; opacity: 0.65; }
+    .nn-fill-a { height: 3px; background: #f59e0b; position: absolute; top: 3.5px; border-radius: 99px; transition: width 0.4s ease; }
+    .nn-gap-note { font-size: 0.78rem; color: var(--text-muted); margin-top: 0.5rem; line-height: 1.5; }
+    .nn-gap-note strong { color: var(--text); }
+
+    /* Buttons inside calc */
+    .nn-btn { background: var(--green); color: var(--navy); border: none; border-radius: 8px; padding: 0.55rem 1.25rem; font-size: 0.85rem; font-family: inherit; font-weight: 700; cursor: pointer; transition: background 0.15s; }
+    .nn-btn:hover { background: #4ade80; }
+    .nn-btn-ghost { background: none; border: 1px solid rgba(148,163,184,0.2); border-radius: 8px; padding: 0.5rem 1rem; font-size: 0.8rem; color: var(--text-muted); cursor: pointer; font-family: inherit; transition: all 0.15s; }
+    .nn-btn-ghost:hover { border-color: var(--green); color: var(--green); }
+
+    /* Tooltip */
+    .nn-tip { display: inline-block; width: 14px; height: 14px; background: rgba(148,163,184,0.12); color: var(--text-muted); border-radius: 50%; font-size: 0.6rem; font-weight: 700; text-align: center; line-height: 14px; cursor: help; margin-left: 4px; position: relative; }
+    .nn-tip:hover::after { content: attr(data-tip); position: absolute; bottom: 120%; left: 50%; transform: translateX(-50%); background: var(--navy-mid); border: 1px solid var(--border); color: var(--text); font-size: 0.72rem; font-weight: 400; padding: 0.4rem 0.65rem; border-radius: 8px; white-space: normal; max-width: 220px; z-index: 20; line-height: 1.4; }
+
+    /* Print header */
+    .nn-print-hdr { display: none; font-size: 1.4rem; font-weight: 900; color: var(--white); margin-bottom: 1rem; border-bottom: 3px solid var(--green); padding-bottom: 0.5rem; }
+    .nn-print-hdr span { font-size: 0.8rem; color: var(--text-muted); display: block; font-weight: 400; margin-top: 0.2rem; }
+
+    @media print {
+      @page { margin: 0.75in; size: letter; }
+      .navbar, .detail-hero, footer, .nn-disclaimer, .nn-loan-bar,
+      .nn-settings, .nn-print-panel { display: none !important; }
+      body { background: white; color: #111; }
+      .nn-wrap { max-width: 100%; padding: 0; }
+      .nn-card, .nn-comp { border: 1px solid #ccc !important; break-inside: avoid; }
+      .nn-grid { grid-template-columns: 1fr 1fr !important; }
+      .nn-print-hdr { display: block !important; }
+    }
+    @media (max-width: 760px) { .nn-grid { grid-template-columns: 1fr; } }
+    @media (max-width: 600px) { .nn-cgrid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav class="navbar">
+    <a href="index.html" class="nav-logo">Open<span>Epen</span></a>
+    <ul class="nav-links">
+      <li><a href="index.html">Home</a></li>
+      <li><a href="projects.html" class="active">Projects</a></li>
+      <li><a href="contact.html">Contact</a></li>
+      <li><a href="contact.html" class="nav-cta">Get in Touch</a></li>
+    </ul>
+  </nav>
+
+  <div class="page-content">
+
+    <!-- HERO -->
+    <div class="detail-hero">
+      <div class="detail-hero-inner">
+        <a href="projects.html" class="detail-back">Back to Projects</a>
+        <div class="detail-meta">
+          <span class="card-status status-live">Live</span>
+          <span class="card-tag">Real Estate</span>
+          <span class="card-tag">Mortgage</span>
+          <span class="card-tag">Calculator</span>
+        </div>
+        <h1>&#127968; NestNumber</h1>
+        <p class="lead">Two numbers matter when buying a home: what you can personally afford, and what a lender says you qualify for. NestNumber shows you both — side by side — and the gap between them. No sign-up, no sales pitch.</p>
+        <div class="detail-actions">
+          <a href="#calculator" class="btn-primary">Use the Calculator</a>
+          <a href="contact.html" class="btn-outline">Contact Us</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- STATS BAND -->
+    <div style="background: var(--navy-mid); padding: 3rem 2rem; border-bottom: 1px solid var(--border);">
+      <div class="stats-grid" style="max-width: 860px; margin: 0 auto;">
+        <div class="stat-card"><div class="stat-value">100%</div><div class="stat-label">Free — no sign-up required</div></div>
+        <div class="stat-card"><div class="stat-value">2</div><div class="stat-label">Calculators compared side-by-side</div></div>
+        <div class="stat-card"><div class="stat-value">50</div><div class="stat-label">State property tax presets</div></div>
+        <div class="stat-card"><div class="stat-value">0</div><div class="stat-label">Ads, upsells, or lender referrals</div></div>
+      </div>
+    </div>
+
+    <!-- CALCULATOR SECTION -->
+    <section id="calculator" style="background: var(--navy-mid); padding: 3rem 0 5rem; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);">
+
+      <div class="section-header" style="padding: 0 1.5rem 2rem;">
+        <span class="section-label">Free Tool</span>
+        <h2 class="section-title">Know Your Number Before You Shop</h2>
+        <p class="section-sub">Enter your real income, expenses, and down payment to see what you can afford vs. what a lender will approve — and whether those numbers match.</p>
+      </div>
+
+      <div class="nn-wrap">
+
+        <!-- print header (print mode only) -->
+        <div class="nn-print-hdr" id="printHeader">NestNumber &mdash; Home Affordability Estimate<span id="printMeta"></span></div>
+
+        <div class="nn-disclaimer"><strong>Estimates only.</strong> This calculator is a planning tool, not a guarantee of loan approval or affordability. Always work with a licensed mortgage professional for your actual numbers.</div>
+
+        <!-- LOAN TYPE -->
+        <div class="nn-loan-bar">
+          <h3>Loan Type</h3>
+          <div class="nn-pills">
+            <button class="nn-pill active-conv" data-type="conventional" onclick="setLoanType('conventional')">Conventional</button>
+            <button class="nn-pill" data-type="fha" onclick="setLoanType('fha')">FHA</button>
+          </div>
+          <div class="nn-info conv show" id="infoConv"><strong>Conventional loan:</strong> Requires typically 3&ndash;20% down. PMI applies when down payment &lt; 20% and is removed once you hit 80% LTV. Best credit scores get the best rates.</div>
+          <div class="nn-info fha" id="infoFha"><strong>FHA loan:</strong> Minimum 3.5% down (580+ credit score). Requires <strong>Upfront MIP</strong> of 1.75% of the loan amount (usually rolled into the loan) plus <strong>Annual MIP</strong> of 0.55&ndash;0.85% depending on term and LTV. MIP stays for the life of the loan if down payment &lt; 10%.</div>
+        </div>
+
+        <!-- SETTINGS BAR -->
+        <div class="nn-settings">
+          <h3>Loan &amp; Rate Assumptions</h3>
+          <div class="nn-state-row">
+            <div class="nn-f">
+              <label>State preset (property tax)</label>
+              <select id="statePreset" onchange="applyStatePreset()">
+                <option value="">&#8212; Select a state &#8212;</option>
+                <option value="AL,0.41">Alabama &mdash; 0.41%</option><option value="AK,1.19">Alaska &mdash; 1.19%</option><option value="AZ,0.62">Arizona &mdash; 0.62%</option><option value="AR,0.62">Arkansas &mdash; 0.62%</option><option value="CA,0.73">California &mdash; 0.73%</option><option value="CO,0.51">Colorado &mdash; 0.51%</option><option value="CT,1.79">Connecticut &mdash; 1.79%</option><option value="DE,0.57">Delaware &mdash; 0.57%</option><option value="FL,0.89">Florida &mdash; 0.89%</option><option value="GA,0.92">Georgia &mdash; 0.92%</option><option value="HI,0.28">Hawaii &mdash; 0.28%</option><option value="ID,0.69">Idaho &mdash; 0.69%</option><option value="IL,2.23">Illinois &mdash; 2.23%</option><option value="IN,0.85">Indiana &mdash; 0.85%</option><option value="IA,1.57">Iowa &mdash; 1.57%</option><option value="KS,1.41">Kansas &mdash; 1.41%</option><option value="KY,0.86">Kentucky &mdash; 0.86%</option><option value="LA,0.55">Louisiana &mdash; 0.55%</option><option value="ME,1.36">Maine &mdash; 1.36%</option><option value="MD,1.09">Maryland &mdash; 1.09%</option><option value="MA,1.23">Massachusetts &mdash; 1.23%</option><option value="MI,1.54">Michigan &mdash; 1.54%</option><option value="MN,1.12">Minnesota &mdash; 1.12%</option><option value="MS,0.65">Mississippi &mdash; 0.65%</option><option value="MO,1.01">Missouri &mdash; 1.01%</option><option value="MT,0.84">Montana &mdash; 0.84%</option><option value="NE,1.73">Nebraska &mdash; 1.73%</option><option value="NV,0.60">Nevada &mdash; 0.60%</option><option value="NH,2.18">New Hampshire &mdash; 2.18%</option><option value="NJ,2.47">New Jersey &mdash; 2.47%</option><option value="NM,0.80">New Mexico &mdash; 0.80%</option><option value="NY,1.72">New York &mdash; 1.72%</option><option value="NC,0.84">North Carolina &mdash; 0.84%</option><option value="ND,0.98">North Dakota &mdash; 0.98%</option><option value="OH,1.62">Ohio &mdash; 1.62%</option><option value="OK,0.90">Oklahoma &mdash; 0.90%</option><option value="OR,0.97">Oregon &mdash; 0.97%</option><option value="PA,1.58">Pennsylvania &mdash; 1.58%</option><option value="RI,1.63">Rhode Island &mdash; 1.63%</option><option value="SC,0.57">South Carolina &mdash; 0.57%</option><option value="SD,1.31">South Dakota &mdash; 1.31%</option><option value="TN,0.71">Tennessee &mdash; 0.71%</option><option value="TX,1.68">Texas &mdash; 1.68%</option><option value="UT,0.63">Utah &mdash; 0.63%</option><option value="VT,1.90">Vermont &mdash; 1.90%</option><option value="VA,0.82">Virginia &mdash; 0.82%</option><option value="WA,0.98">Washington &mdash; 0.98%</option><option value="WV,0.59">West Virginia &mdash; 0.59%</option><option value="WI,1.85">Wisconsin &mdash; 1.85%</option><option value="WY,0.61">Wyoming &mdash; 0.61%</option>
+              </select>
+            </div>
+            <div class="nn-fsm">
+              <label>Property tax rate <span class="nn-tip" data-tip="Auto-filled from state preset, or enter your county's exact rate.">?</span></label>
+              <div class="input-wrap has-suffix"><input type="number" id="propTaxRate" value="1.10" step="0.01" min="0" max="5" /><span class="suffix">%</span></div>
+            </div>
+          </div>
+          <div class="nn-f"><label>Interest rate</label><div class="input-wrap has-suffix"><input type="number" id="interestRate" value="7.0" step="0.1" min="1" max="20" /><span class="suffix">%</span></div></div>
+          <div class="nn-f"><label>Loan term</label><select id="loanTerm"><option value="30" selected>30 years</option><option value="15">15 years</option><option value="20">20 years</option></select></div>
+          <div class="nn-f"><label>Homeowners insurance <span class="nn-tip" data-tip="Typically 0.5-1% of home value annually.">?</span></label><div class="input-wrap has-suffix"><input type="number" id="hoiRate" value="0.6" step="0.1" min="0" max="5" /><span class="suffix">%</span></div></div>
+          <div class="nn-f" id="pmiRateField"><label>PMI rate <span class="nn-tip" data-tip="Applied when down payment less than 20%. Typically 0.5-1.5%.">?</span></label><div class="input-wrap has-suffix"><input type="number" id="pmiRate" value="0.85" step="0.05" min="0" max="3" /><span class="suffix">%</span></div></div>
+          <div class="nn-f" id="fhaMipField" style="display:none;"><label>FHA annual MIP <span class="nn-tip" data-tip="0.55% (15yr LTV90%) or 0.85% (30yr LTV>95%). Upfront MIP of 1.75% added to loan.">?</span></label><div class="input-wrap has-suffix"><input type="number" id="fhaMipRate" value="0.85" step="0.05" min="0" max="3" /><span class="suffix">%</span></div></div>
+          <div class="nn-f"><label>Monthly HOA</label><div class="input-wrap has-prefix"><span class="prefix">$</span><input type="number" id="hoa" value="0" step="10" min="0" /></div></div>
+          <button class="nn-btn-ghost" onclick="resetAll()">Reset all</button>
+        </div>
+
+        <!-- PRINT PANEL -->
+        <div class="nn-print-panel">
+          <h3>Print or Save as PDF</h3>
+          <div class="nn-print-row">
+            <div class="nn-pf"><label>Your name (optional)</label><input type="text" id="printName" placeholder="e.g. Kelly &amp; John" /></div>
+            <div class="nn-pf"><label>Date</label><input type="text" id="printDate" placeholder="e.g. June 2026" /></div>
+            <button class="nn-btn" onclick="printResults()">&#128424; Print / Save PDF</button>
+          </div>
+          <p class="nn-print-note">In the print dialog, choose "Save as PDF" to get a clean summary to share with your agent or lender.</p>
+        </div>
+
+        <!-- TWO CALC CARDS -->
+        <div class="nn-grid" id="calcGrid">
+
+          <!-- LEFT: WHAT CAN I AFFORD -->
+          <div class="nn-card">
+            <div class="nn-chdr afford"><h2>What Can I Afford?</h2><p>Based on your take-home pay and real monthly expenses &mdash; what <em>you</em> can comfortably handle.</p></div>
+            <div class="nn-cbody">
+              <span class="nn-sl">Monthly Income (after taxes / net)</span>
+              <div class="nn-f"><label>Your net monthly income</label><div class="input-wrap has-prefix"><span class="prefix">$</span><input type="number" id="a_income1" placeholder="0" min="0" /></div></div>
+              <div class="nn-f"><label>Partner&rsquo;s net monthly income</label><div class="input-wrap has-prefix"><span class="prefix">$</span><input type="number" id="a_income2" placeholder="0" min="0" /></div></div>
+              <div class="nn-f"><label>Other net monthly income</label><div class="input-wrap has-prefix"><span class="prefix">$</span><input type="number" id="a_income3" placeholder="0" min="0" /></div></div>
+              <div class="nn-row"><span class="nn-rl">Total net monthly income</span><span class="nn-rv" id="a_totalIncome">$0</span></div>
+
+              <span class="nn-sl">Monthly Expenses</span>
+              <div class="nn-f"><label>Average monthly expenses <span class="nn-tip" data-tip="Food, gas, subscriptions, credit cards. Exclude current rent.">?</span></label><div class="input-wrap has-prefix"><span class="prefix">$</span><input type="number" id="a_expenses" placeholder="0" min="0" /></div></div>
+              <div class="nn-f"><label>Savings / 401k / emergency fund</label><div class="input-wrap has-prefix"><span class="prefix">$</span><input type="number" id="a_savings" placeholder="0" min="0" /></div></div>
+              <div class="nn-f"><label>Other monthly expenses</label><div class="input-wrap has-prefix"><span class="prefix">$</span><input type="number" id="a_otherExp" placeholder="0" min="0" /></div></div>
+              <div class="nn-row"><span class="nn-rl">Total monthly expenses</span><span class="nn-rv" id="a_totalExp">$0</span></div>
+
+              <span class="nn-sl">Down Payment</span>
+              <div class="nn-f"><label>Down payment amount</label><div class="input-wrap has-prefix"><span class="prefix">$</span><input type="number" id="a_down" placeholder="0" min="0" /></div></div>
+
+              <span class="nn-sl">Estimates</span>
+              <div class="nn-row"><span class="nn-rl">Remaining for housing (monthly)</span><span class="nn-rv g" id="a_remaining">$0</span></div>
+              <div class="nn-row"><span class="nn-rl">Est. principal &amp; interest</span><span class="nn-rv" id="a_pi">$0</span></div>
+              <div class="nn-row"><span class="nn-rl">Est. property taxes (monthly)</span><span class="nn-rv" id="a_tax">$0</span></div>
+              <div class="nn-row"><span class="nn-rl">Est. homeowners insurance</span><span class="nn-rv" id="a_hoi">$0</span></div>
+              <div class="nn-row"><span class="nn-rl">Est. PMI <span class="nn-tip" data-tip="Removed when down payment is 20% or more of home price.">?</span></span><span class="nn-rv" id="a_pmi">&mdash;</span></div>
+              <div class="nn-row nn-fha"><span class="nn-rl">FHA upfront MIP (1.75%, in loan) <span class="nn-tip" data-tip="Added to your loan balance, not a monthly cost.">?</span></span><span class="nn-rv" id="a_mipUpfront">&mdash;</span></div>
+              <div class="nn-row nn-fha"><span class="nn-rl">FHA annual MIP (monthly)</span><span class="nn-rv" id="a_mipAnnual">&mdash;</span></div>
+              <div class="nn-row"><span class="nn-rl">HOA</span><span class="nn-rv" id="a_hoaOut">&mdash;</span></div>
+              <div class="nn-row"><span class="nn-rl">Est. utilities &amp; maintenance buffer <span class="nn-tip" data-tip="What's left after PITI + HOA. Use for utilities, repairs, surprises.">?</span></span><span class="nn-rv" id="a_util">$0</span></div>
+              <div class="nn-ans sage"><div class="al">Estimated purchase price you can afford</div><div class="an" id="a_purchasePrice">$0</div><div class="as" id="a_loanAmt">Loan amount: $0</div></div>
+            </div>
+          </div>
+
+          <!-- RIGHT: WHAT CAN I PRE-QUALIFY FOR -->
+          <div class="nn-card">
+            <div class="nn-chdr prequal"><h2>What Can I Pre-Qualify For?</h2><p>Based on your gross income and long-term debts &mdash; what a <em>lender</em> will likely approve.</p></div>
+            <div class="nn-cbody">
+              <span class="nn-sl">Monthly Income (before taxes / gross)</span>
+              <div class="nn-f"><label>Your gross monthly income</label><div class="input-wrap has-prefix"><span class="prefix">$</span><input type="number" id="q_income1" placeholder="0" min="0" /></div></div>
+              <div class="nn-f"><label>Partner&rsquo;s gross monthly income</label><div class="input-wrap has-prefix"><span class="prefix">$</span><input type="number" id="q_income2" placeholder="0" min="0" /></div></div>
+              <div class="nn-f"><label>Other income <span class="nn-tip" data-tip="Must be provable for 2+ years (rental, freelance, alimony, etc.)">?</span></label><div class="input-wrap has-prefix"><span class="prefix">$</span><input type="number" id="q_income3" placeholder="0" min="0" /></div></div>
+              <div class="nn-row"><span class="nn-rl">Total gross monthly income</span><span class="nn-rv" id="q_totalIncome">$0</span></div>
+
+              <span class="nn-sl">Long-Term Monthly Debts</span>
+              <div class="nn-f"><label>Installment loans <span class="nn-tip" data-tip="Car payments, student loans, personal loans.">?</span></label><div class="input-wrap has-prefix"><span class="prefix">$</span><input type="number" id="q_installment" placeholder="0" min="0" /></div></div>
+              <div class="nn-f"><label>Revolving &amp; other debts <span class="nn-tip" data-tip="Minimum credit card payments, child support, alimony.">?</span></label><div class="input-wrap has-prefix"><span class="prefix">$</span><input type="number" id="q_revolving" placeholder="0" min="0" /></div></div>
+              <div class="nn-row"><span class="nn-rl">Total long-term debts</span><span class="nn-rv" id="q_totalDebts">$0</span></div>
+
+              <span class="nn-sl">DTI Settings</span>
+              <div class="nn-f"><label>Target debt-to-income ratio <span class="nn-tip" data-tip="Conventional max: 43-45%. FHA allows up to 50%. Conservative: 36%.">?</span></label><select id="q_dti"><option value="0.36">36% &mdash; Conservative</option><option value="0.43" selected>43% &mdash; Conventional max</option><option value="0.50">50% &mdash; FHA max</option></select></div>
+
+              <span class="nn-sl">Down Payment</span>
+              <div class="nn-f"><label>Down payment amount</label><div class="input-wrap has-prefix"><span class="prefix">$</span><input type="number" id="q_down" placeholder="0" min="0" /></div></div>
+
+              <span class="nn-sl">Estimates</span>
+              <div class="nn-row"><span class="nn-rl">Max total housing payment (DTI)</span><span class="nn-rv a" id="q_maxPayment">$0</span></div>
+              <div class="nn-row"><span class="nn-rl">Available after existing debts</span><span class="nn-rv" id="q_availableForHousing">$0</span></div>
+              <div class="nn-row"><span class="nn-rl">Est. principal &amp; interest</span><span class="nn-rv" id="q_pi">$0</span></div>
+              <div class="nn-row"><span class="nn-rl">Est. property taxes (monthly)</span><span class="nn-rv" id="q_tax">$0</span></div>
+              <div class="nn-row"><span class="nn-rl">Est. homeowners insurance</span><span class="nn-rv" id="q_hoi">$0</span></div>
+              <div class="nn-row"><span class="nn-rl">Est. PMI</span><span class="nn-rv" id="q_pmi">&mdash;</span></div>
+              <div class="nn-row nn-fha"><span class="nn-rl">FHA upfront MIP (1.75%, in loan)</span><span class="nn-rv" id="q_mipUpfront">&mdash;</span></div>
+              <div class="nn-row nn-fha"><span class="nn-rl">FHA annual MIP (monthly)</span><span class="nn-rv" id="q_mipAnnual">&mdash;</span></div>
+              <div class="nn-row"><span class="nn-rl">HOA</span><span class="nn-rv" id="q_hoaOut">&mdash;</span></div>
+              <div class="nn-ans amber"><div class="al">Estimated purchase price you can pre-qualify for</div><div class="an" id="q_purchasePrice">$0</div><div class="as" id="q_loanAmt">Loan amount: $0</div></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- COMPARISON CARD -->
+        <div class="nn-comp">
+          <div class="nn-chdr"><h2>How Do Your Numbers Compare?</h2><p>Current housing costs vs. proposed mortgage &mdash; and the gap between what you can afford and what you can borrow.</p></div>
+          <div class="nn-comp-body">
+            <div class="nn-cgrid">
+              <div class="nn-ccol">
+                <h4>Current Housing Costs</h4>
+                <div class="nn-f"><label>Current rent / mortgage</label><div class="input-wrap has-prefix"><span class="prefix">$</span><input type="number" id="c_rent" placeholder="0" min="0" /></div></div>
+                <div class="nn-f"><label>Current utilities &amp; other</label><div class="input-wrap has-prefix"><span class="prefix">$</span><input type="number" id="c_util" placeholder="0" min="0" /></div></div>
+                <div class="nn-row"><span class="nn-rl">Total current housing</span><span class="nn-rv" id="c_total">$0</span></div>
+              </div>
+              <div class="nn-ccol sage">
+                <h4>Proposed (Afford Side)</h4>
+                <div class="nn-row"><span class="nn-rl">Est. P&amp;I</span><span class="nn-rv" id="c_a_pi">$0</span></div>
+                <div class="nn-row"><span class="nn-rl">Taxes + insurance + MIP/PMI</span><span class="nn-rv" id="c_a_tiph">$0</span></div>
+                <div class="nn-row"><span class="nn-rl">HOA</span><span class="nn-rv" id="c_a_hoa">&mdash;</span></div>
+                <div class="nn-row"><span class="nn-rl"><strong>Total proposed payment</strong></span><span class="nn-rv g" id="c_a_total">$0</span></div>
+                <div class="nn-row"><span class="nn-rl">vs. current housing</span><span class="nn-rv" id="c_a_diff">&mdash;</span></div>
+              </div>
+              <div class="nn-ccol amber">
+                <h4>Proposed (Pre-Qualify Side)</h4>
+                <div class="nn-row"><span class="nn-rl">Est. P&amp;I</span><span class="nn-rv" id="c_q_pi">$0</span></div>
+                <div class="nn-row"><span class="nn-rl">Taxes + insurance + MIP/PMI</span><span class="nn-rv" id="c_q_tiph">$0</span></div>
+                <div class="nn-row"><span class="nn-rl">HOA</span><span class="nn-rv" id="c_q_hoa">&mdash;</span></div>
+                <div class="nn-row"><span class="nn-rl"><strong>Total proposed payment</strong></span><span class="nn-rv a" id="c_q_total">$0</span></div>
+                <div class="nn-row"><span class="nn-rl">vs. current housing</span><span class="nn-rv" id="c_q_diff">&mdash;</span></div>
+              </div>
+            </div>
+            <div class="nn-gap">
+              <div class="nn-gap-labels"><span>What I can afford</span><span>What I can pre-qualify for</span></div>
+              <div class="nn-track"><div class="nn-fill-g" id="gapBarAfford" style="width:0%"></div><div class="nn-fill-a" id="gapBarPrequal" style="width:0%"></div></div>
+              <p class="nn-gap-note" id="gapNote">Enter your numbers above to see the gap between what you personally can afford and what a lender may approve.</p>
+            </div>
+            <div style="margin-top:1.25rem;">
+              <div class="nn-row"><span class="nn-rl">Home price you can afford</span><span class="nn-rv g" id="gap_afford">$0</span></div>
+              <div class="nn-row"><span class="nn-rl">Home price you may pre-qualify for</span><span class="nn-rv a" id="gap_prequal">$0</span></div>
+              <div class="nn-row"><span class="nn-rl"><strong>Gap between the two</strong></span><span class="nn-rv" id="gap_diff">&mdash;</span></div>
+            </div>
+          </div>
+        </div>
+
+        <p style="text-align:center; font-size:0.78rem; color:var(--text-muted); margin-top:0.5rem;">NestNumber is a free planning tool by OpenEpen. Not financial advice. PMI removed when down payment &ge; 20%. FHA MIP rates per HUD guidelines.</p>
+
+      </div><!-- end nn-wrap -->
+    </section>
+
+    <!-- CTA BAND -->
+    <section style="background: var(--navy); text-align: center; padding: 5rem 2rem; border-top: 1px solid var(--border);">
+      <span class="section-label">More from OpenEpen</span>
+      <h2 class="section-title" style="margin-top: 0.5rem;">Check Out Our Other Tools</h2>
+      <p class="section-sub" style="margin-top: 0.75rem;">PayMePro helps freelancers get paid faster. More projects coming soon.</p>
+      <div style="display:flex; gap:1rem; justify-content:center; margin-top:2rem; flex-wrap:wrap;">
+        <a href="paymepro.html" class="btn-primary">View PayMePro</a>
+        <a href="projects.html" class="btn-outline">All Projects</a>
+      </div>
+    </section>
+
+  </div><!-- end page-content -->
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <a href="index.html" class="nav-logo">Open<span>Epen</span></a>
+        <p>Independent software studio building products that make life a little easier.</p>
+      </div>
+      <div class="footer-col">
+        <h4>Navigation</h4>
+        <ul>
+          <li><a href="index.html">Home</a></li>
+          <li><a href="projects.html">Projects</a></li>
+          <li><a href="contact.html">Contact</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Projects</h4>
+        <ul>
+          <li><a href="paymepro.html">PayMePro</a></li>
+          <li><a href="nestnumber.html">NestNumber</a></li>
+          <li><a href="contact.html">SmallBizMD</a></li>
+          <li><a href="contact.html">ScannerDan</a></li>
+          <li><a href="contact.html">TubieTribe</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Contact</h4>
+        <ul>
+          <li><a href="mailto:openepen1@gmail.com">openepen1@gmail.com</a></li>
+          <li><a href="contact.html">Contact Form</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>&copy; 2026 OpenEpen. All rights reserved.</span>
+      <span>Built with care.</span>
+    </div>
+  </footer>
+
+  <script>
+  let loanType = 'conventional';
+  const $ = id => document.getElementById(id);
+  const val = id => parseFloat($(id).value) || 0;
+  const fmt = n => (n <= 0) ? '$0' : '$' + Math.round(n).toLocaleString();
+  const fmtDiff = n => { if (n === 0) return '—'; return (n > 0 ? '+' : '') + '$' + Math.round(Math.abs(n)).toLocaleString() + (n > 0 ? ' more' : ' less'); };
+
+  function setLoanType(type) {
+    loanType = type;
+    document.querySelectorAll('.nn-pill').forEach(p => p.className = 'nn-pill');
+    document.querySelector('[data-type="' + type + '"]').className = 'nn-pill active-' + type;
+    $('infoConv').className = 'nn-info conv' + (type === 'conventional' ? ' show' : '');
+    $('infoFha').className  = 'nn-info fha'  + (type === 'fha' ? ' show' : '');
+    $('pmiRateField').style.display = type === 'conventional' ? '' : 'none';
+    $('fhaMipField').style.display  = type === 'fha' ? '' : 'none';
+    document.querySelectorAll('.nn-fha').forEach(el => el.style.display = type === 'fha' ? 'flex' : 'none');
+    $('q_dti').value = type === 'fha' ? '0.50' : '0.43';
+    calculate();
+  }
+
+  function applyStatePreset() {
+    const v = $('statePreset').value;
+    if (!v) return;
+    $('propTaxRate').value = v.split(',')[1];
+    calculate();
+  }
+
+  function monthlyPI(loan, annualRate, termYrs) {
+    if (loan <= 0 || annualRate <= 0) return 0;
+    const r = (annualRate / 100) / 12, n = termYrs * 12;
+    return loan * (r * Math.pow(1+r, n)) / (Math.pow(1+r, n) - 1);
+  }
+
+  function loanFromPI(payment, annualRate, termYrs) {
+    if (payment <= 0 || annualRate <= 0) return 0;
+    const r = (annualRate / 100) / 12, n = termYrs * 12;
+    return payment * (Math.pow(1+r, n) - 1) / (r * Math.pow(1+r, n));
+  }
+
+  function solveHomePrice(budget, down, rate, term, taxRate, hoiRate, pmiRate, hoa, isFHA, fhaMipRate) {
+    if (budget <= 0) return 0;
+    let price = 200000;
+    for (let i = 0; i < 300; i++) {
+      const baseLoan = Math.max(0, price - down);
+      const loan = isFHA ? baseLoan * 1.0175 : baseLoan;
+      const ltv  = price > 0 ? baseLoan / price : 1;
+      const overhead = price*(taxRate/100)/12 + price*(hoiRate/100)/12
+        + (!isFHA && ltv > 0.80 ? loan*(pmiRate/100)/12 : 0)
+        + (isFHA ? loan*(fhaMipRate/100)/12 : 0) + hoa;
+      const piNeeded = budget - overhead;
+      if (piNeeded <= 0) { price *= 0.5; continue; }
+      const loanNeeded = loanFromPI(piNeeded, rate, term);
+      const newPrice = isFHA ? (loanNeeded / 1.0175) + down : loanNeeded + down;
+      if (Math.abs(newPrice - price) < 0.5) { price = newPrice; break; }
+      price = newPrice;
+    }
+    return Math.max(0, price);
+  }
+
+  function calculate() {
+    const rate=val('interestRate'), term=val('loanTerm'), taxRate=val('propTaxRate'),
+          hoiRate=val('hoiRate'), pmiRate=val('pmiRate'), fhaMipRate=val('fhaMipRate'),
+          hoa=val('hoa'), isFHA=loanType==='fha';
+
+    // AFFORD
+    const aTotalInc = val('a_income1')+val('a_income2')+val('a_income3');
+    const aTotalExp = val('a_expenses')+val('a_savings')+val('a_otherExp');
+    const aRemain   = Math.max(0, aTotalInc - aTotalExp);
+    const aDown     = val('a_down');
+    const aPrice    = solveHomePrice(aRemain, aDown, rate, term, taxRate, hoiRate, pmiRate, hoa, isFHA, fhaMipRate);
+    const aBase     = Math.max(0, aPrice - aDown);
+    const aLoan     = isFHA ? aBase*1.0175 : aBase;
+    const aLtv      = aPrice > 0 ? aBase/aPrice : 1;
+    const aPi       = monthlyPI(aLoan, rate, term);
+    const aTax      = aPrice*(taxRate/100)/12;
+    const aHoi      = aPrice*(hoiRate/100)/12;
+    const aPmi      = (!isFHA && aLtv>0.80) ? aLoan*(pmiRate/100)/12 : 0;
+    const aMipAnn   = isFHA ? aLoan*(fhaMipRate/100)/12 : 0;
+    const aMipUp    = isFHA ? aBase*0.0175 : 0;
+    const aPiti     = aPi+aTax+aHoi+aPmi+aMipAnn+hoa;
+
+    $('a_totalIncome').textContent   = fmt(aTotalInc);
+    $('a_totalExp').textContent      = fmt(aTotalExp);
+    $('a_remaining').textContent     = fmt(aRemain);
+    $('a_pi').textContent            = fmt(aPi);
+    $('a_tax').textContent           = fmt(aTax);
+    $('a_hoi').textContent           = fmt(aHoi);
+    $('a_pmi').textContent           = aPmi>0 ? fmt(aPmi) : '—';
+    $('a_mipUpfront').textContent    = isFHA ? fmt(aMipUp) : '—';
+    $('a_mipAnnual').textContent     = isFHA ? fmt(aMipAnn) : '—';
+    $('a_hoaOut').textContent        = hoa>0 ? fmt(hoa) : '—';
+    $('a_util').textContent          = fmt(Math.max(0, aRemain-aPiti));
+    $('a_purchasePrice').textContent = fmt(aPrice);
+    $('a_loanAmt').textContent       = 'Loan amount: '+fmt(aLoan)+(isFHA?' (includes upfront MIP)':'');
+
+    // PREQUAL
+    const qTotalInc  = val('q_income1')+val('q_income2')+val('q_income3');
+    const qTotalDeb  = val('q_installment')+val('q_revolving');
+    const qDti       = val('q_dti');
+    const qMax       = qTotalInc*qDti;
+    const qAvail     = Math.max(0, qMax-qTotalDeb);
+    const qDown      = val('q_down');
+    const qPrice     = solveHomePrice(qAvail, qDown, rate, term, taxRate, hoiRate, pmiRate, hoa, isFHA, fhaMipRate);
+    const qBase      = Math.max(0, qPrice-qDown);
+    const qLoan      = isFHA ? qBase*1.0175 : qBase;
+    const qLtv       = qPrice>0 ? qBase/qPrice : 1;
+    const qPi        = monthlyPI(qLoan, rate, term);
+    const qTax       = qPrice*(taxRate/100)/12;
+    const qHoi       = qPrice*(hoiRate/100)/12;
+    const qPmi       = (!isFHA && qLtv>0.80) ? qLoan*(pmiRate/100)/12 : 0;
+    const qMipAnn    = isFHA ? qLoan*(fhaMipRate/100)/12 : 0;
+    const qMipUp     = isFHA ? qBase*0.0175 : 0;
+
+    $('q_totalIncome').textContent        = fmt(qTotalInc);
+    $('q_totalDebts').textContent         = fmt(qTotalDeb);
+    $('q_maxPayment').textContent         = fmt(qMax);
+    $('q_availableForHousing').textContent= fmt(qAvail);
+    $('q_pi').textContent                 = fmt(qPi);
+    $('q_tax').textContent                = fmt(qTax);
+    $('q_hoi').textContent                = fmt(qHoi);
+    $('q_pmi').textContent                = qPmi>0 ? fmt(qPmi) : '—';
+    $('q_mipUpfront').textContent         = isFHA ? fmt(qMipUp) : '—';
+    $('q_mipAnnual').textContent          = isFHA ? fmt(qMipAnn) : '—';
+    $('q_hoaOut').textContent             = hoa>0 ? fmt(hoa) : '—';
+    $('q_purchasePrice').textContent      = fmt(qPrice);
+    $('q_loanAmt').textContent            = 'Loan amount: '+fmt(qLoan)+(isFHA?' (includes upfront MIP)':'');
+
+    // COMPARISON
+    const cRent=val('c_rent'), cUtil=val('c_util'), cTotal=cRent+cUtil;
+    const caTimph=aTax+aHoi+aPmi+aMipAnn, cqTimph=qTax+qHoi+qPmi+qMipAnn;
+    const caTotal=aPi+caTimph+hoa, cqTotal=qPi+cqTimph+hoa;
+
+    $('c_total').textContent   = fmt(cTotal);
+    $('c_a_pi').textContent    = fmt(aPi);
+    $('c_a_tiph').textContent  = fmt(caTimph);
+    $('c_a_hoa').textContent   = hoa>0 ? fmt(hoa) : '—';
+    $('c_a_total').textContent = fmt(caTotal);
+    $('c_a_diff').textContent  = cTotal>0 ? fmtDiff(caTotal-cTotal) : '—';
+    $('c_q_pi').textContent    = fmt(qPi);
+    $('c_q_tiph').textContent  = fmt(cqTimph);
+    $('c_q_hoa').textContent   = hoa>0 ? fmt(hoa) : '—';
+    $('c_q_total').textContent = fmt(cqTotal);
+    $('c_q_diff').textContent  = cTotal>0 ? fmtDiff(cqTotal-cTotal) : '—';
+
+    // GAP BAR
+    $('gap_afford').textContent  = fmt(aPrice);
+    $('gap_prequal').textContent = fmt(qPrice);
+    const gapDiff = qPrice-aPrice;
+    $('gap_diff').textContent = (aPrice===0&&qPrice===0) ? '—' : fmtDiff(gapDiff);
+    const maxP = Math.max(aPrice,qPrice,1);
+    $('gapBarAfford').style.width  = (aPrice/maxP*100)+'%';
+    $('gapBarPrequal').style.width = (qPrice/maxP*100)+'%';
+    if (aPrice>0||qPrice>0) {
+      if (Math.abs(gapDiff)<5000)  $('gapNote').innerHTML = '<strong>Great alignment.</strong> Your personal budget and lender qualification are very close.';
+      else if (gapDiff>0)  $('gapNote').innerHTML = '<strong>The bank will lend you more than your budget allows.</strong> Your pre-qualification is '+fmt(gapDiff)+' higher than what your finances support — shop at the afford number, not the pre-qual.';
+      else $('gapNote').innerHTML = '<strong>Your budget exceeds your pre-qualification.</strong> Paying down debts or increasing income could raise your qualification by '+fmt(Math.abs(gapDiff))+'.';
+    }
+  }
+
+  function printResults() {
+    const name=$('printName').value.trim(), date=$('printDate').value.trim()||new Date().toLocaleDateString('en-US',{month:'long',year:'numeric'});
+    $('printHeader').style.display='block';
+    $('printMeta').textContent=[name,date,loanType==='fha'?'FHA Loan':'Conventional Loan'].filter(Boolean).join(' · ');
+    window.print();
+    setTimeout(()=>{ $('printHeader').style.display='none'; },1000);
+  }
+
+  function resetAll() {
+    document.querySelectorAll('.nn-wrap input[type="number"]').forEach(el=>{ el.value=el.hasAttribute('value')?el.getAttribute('value'):''; });
+    document.querySelectorAll('.nn-wrap input[type="text"]').forEach(el=>el.value='');
+    $('statePreset').value=''; $('loanTerm').value='30';
+    setLoanType('conventional');
+  }
+
+  document.querySelectorAll('.nn-wrap input, .nn-wrap select').forEach(el=>el.addEventListener('input',calculate));
+  document.querySelectorAll('.nn-fha').forEach(el=>el.style.display='none');
+  calculate();
+  </script>
+
+</body>
+</html>
