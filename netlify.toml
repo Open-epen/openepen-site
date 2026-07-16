@@ -2,6 +2,16 @@
   publish = "."
 
 [[redirects]]
+  from = "/trade-journal"
+  to = "/trade-journal/dist/index.html"
+  status = 200
+
+[[redirects]]
+  from = "/trade-journal/"
+  to = "/trade-journal/dist/index.html"
+  status = 200
+
+[[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200
